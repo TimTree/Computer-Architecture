@@ -6,6 +6,18 @@
 
 ## Task List: add this to the first comment of your Pull Request
 
+call.ls8: Use the call command to run a subroutine that prints a number in a register multiplied by 2
+interrupts.ls8: Prints the letter A once a second
+keyboard.ls8: Program that tests the keyboard
+mult.ls8: Multiplies 8 by 9 to get 72
+print8.ls8: Prints the number 8
+printstr.ls8: Prints the string, "Hello, world!"
+sctest.ls8: Sprint challenge test
+stack.ls8: Test stacks
+stackoverflow.ls8: Test stack overflows
+cpu.py: Our emulated CPU that can run programs from the ls8 (from the machine code)
+ls8.py: Main script to run the emulated CPU
+
 ### Day 1: Get `print8.ls8` running
 
 - [ ] Inventory what is here
