@@ -6,6 +6,8 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 
 class CPU:
@@ -14,9 +16,15 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
-        self.reg = [0] * 8 
+        self.reg = [0] * 8
         self.pc = 0
         self.program_filename = sys.argv[1]
+
+        # Stack pointer location is in position 7 of the register as per the spec
+        self.SP = 7
+
+        # The stack by default points to address 0xF4
+        self.reg[self.SP] = 0xF4
 
     def load(self):
         """Load a program into memory."""
@@ -77,7 +85,7 @@ class CPU:
         running = True
 
         while running:
-            ir = self.ram[self.pc]
+            ir = self.ram_read(self.pc)
 
             if ir == LDI:
                 reg_num = self.ram_read(self.pc + 1)
@@ -92,11 +100,21 @@ class CPU:
             elif ir == MUL:
                 value0 = self.reg[self.ram_read(self.pc + 1)]
                 value1 = self.reg[self.ram_read(self.pc + 2)]
-                self.reg[self.reg[self.pc + 1]] = value0 * value1
+                self.reg[self.ram_read(self.pc + 1)] = value0 * value1
                 self.pc += 3
 
             elif ir == HLT:
                 running = False
+
+            elif ir == PUSH:
+                self.reg[self.SP] -= 1  # Decrement SP
+                self.ram_write(self.reg[self.SP], self.reg[self.ram_read(self.pc + 1)])
+                self.pc += 2
+
+            elif ir == POP:
+                self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.reg[self.SP])
+                self.reg[self.SP] += 1  # Increment SP
+                self.pc += 2
 
             else:
                 print("Unknown instruction")
