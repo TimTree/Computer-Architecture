@@ -8,6 +8,9 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+ADD = 0b10100000
+RET = 0b00010001
 
 
 class CPU:
@@ -27,6 +30,9 @@ class CPU:
         self.branchtable[MUL] = self.handle_mul
         self.branchtable[PUSH] = self.handle_push
         self.branchtable[POP] = self.handle_pop
+        self.branchtable[CALL] = self.handle_call
+        self.branchtable[ADD] = self.handle_add
+        self.branchtable[RET] = self.handle_ret
 
         # Stack pointer location is in position 7 of the register per the spec
         self.SP = 7
@@ -62,6 +68,30 @@ class CPU:
         self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.reg[self.SP])
         self.reg[self.SP] += 1  # Increment SP
         self.pc += 2
+
+    def handle_call(self):
+        # The address of the ***instruction*** _directly after_ `CALL` is
+        # pushed onto the stack.
+
+        self.reg[self.SP] -= 1  # Decrement SP
+        self.ram_write(self.reg[self.SP], (self.pc + 2))
+        # The PC is set to the address stored in the given register.
+        self.pc = self.reg[self.ram_read(self.pc + 1)]
+        
+        # self.pc += 2
+
+    def handle_add(self):
+        value0 = self.reg[self.ram_read(self.pc + 1)]
+        value1 = self.reg[self.ram_read(self.pc + 2)]
+        self.reg[self.ram_read(self.pc + 1)] = value0 + value1
+        self.pc += 3
+
+    def handle_ret(self):
+        # Pop the value from the top of the stack and store it in the `PC`.
+        self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.reg[self.SP])
+        self.pc = self.ram_read(self.reg[self.SP])
+        self.reg[self.SP] += 1  # Increment SP
+        pass
 
     def load(self):
         """Load a program into memory."""
