@@ -110,7 +110,7 @@ class CPU:
             self.fl = 0b00000010
         else:
             self.fl = 0b00000100
-        print(bin(self.fl))
+        # print(bin(self.fl))
         self.pc += 3
 
     def handle_jeq(self):
