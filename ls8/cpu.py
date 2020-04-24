@@ -11,6 +11,10 @@ POP = 0b01000110
 CALL = 0b01010000
 ADD = 0b10100000
 RET = 0b00010001
+CMP = 0b10100111
+JNE = 0b01010110
+JEQ = 0b01010101
+JMP = 0b01010100
 
 
 class CPU:
@@ -21,6 +25,7 @@ class CPU:
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.fl = 0b00000000
         self.program_filename = sys.argv[1]
 
         self.branchtable = {}
@@ -33,6 +38,10 @@ class CPU:
         self.branchtable[CALL] = self.handle_call
         self.branchtable[ADD] = self.handle_add
         self.branchtable[RET] = self.handle_ret
+        self.branchtable[CMP] = self.handle_cmp
+        self.branchtable[JEQ] = self.handle_jeq
+        self.branchtable[JNE] = self.handle_jne
+        self.branchtable[JMP] = self.handle_jmp
 
         # Stack pointer location is in position 7 of the register per the spec
         self.SP = 7
@@ -91,7 +100,33 @@ class CPU:
         self.reg[self.ram_read(self.pc + 1)] = self.ram_read(self.reg[self.SP])
         self.pc = self.ram_read(self.reg[self.SP])
         self.reg[self.SP] += 1  # Increment SP
-        pass
+    
+    def handle_cmp(self):
+        value0 = self.reg[self.ram_read(self.pc + 1)]
+        value1 = self.reg[self.ram_read(self.pc + 2)]
+        if value0 == value1:
+            self.fl = 0b00000001
+        elif value0 > value1:
+            self.fl = 0b00000010
+        else:
+            self.fl = 0b00000100
+        print(bin(self.fl))
+        self.pc += 3
+
+    def handle_jeq(self):
+        if self.fl & 0b00000001 == 1:  # equal
+            self.pc = self.reg[self.ram_read(self.pc + 1)]
+        else:  # not equal
+            self.pc += 2
+
+    def handle_jne(self):
+        if self.fl & 0b00000001 == 0:  # not equal
+            self.pc = self.reg[self.ram_read(self.pc + 1)]
+        else:  # equal
+            self.pc += 2
+
+    def handle_jmp(self):
+        self.pc = self.reg[self.ram_read(self.pc + 1)]
 
     def load(self):
         """Load a program into memory."""
